@@ -53,7 +53,7 @@ class ComparisonRequest(BaseModel):
 # ============================================================
 
 class StockData(BaseModel):
-    company_name: str
+    company_name: Optional[str] = None
     ticker: str
     sector: Optional[str] = None
     industry: Optional[str] = None
@@ -118,7 +118,7 @@ class ResearchResponse(BaseModel):
 
 class ComparisonCompany(BaseModel):
     ticker: str
-    company_name: str
+    company_name: Optional[str] = None
 
     current_price: Optional[float] = None
     market_cap: Optional[float] = None
