@@ -8,8 +8,31 @@ def get_stock_summary(ticker: str) -> dict:
 
     ticker = ticker.upper().strip()
 
+    if not ticker:
+        raise ValueError("Ticker symbol cannot be empty.")
+
     stock = yf.Ticker(ticker)
-    info = stock.info
+
+    try:
+        info = stock.info
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to retrieve Yahoo Finance data for {ticker}: {e}"
+        ) from e
+
+    if not info:
+        raise RuntimeError(
+            f"No financial information returned by Yahoo Finance for {ticker}."
+        )
+
+    # Detect the specific situation we're currently seeing on Render.
+    if not any(
+        info.get(field)
+        for field in ["longName", "currentPrice", "marketCap", "totalRevenue"]
+    ):
+        raise RuntimeError(
+            f"Yahoo Finance returned incomplete data for {ticker}."
+        )
 
     return {
         # Company
