@@ -30,8 +30,12 @@ def get_stock_summary(ticker: str) -> dict:
         info.get(field)
         for field in ["longName", "currentPrice", "marketCap", "totalRevenue"]
     ):
+        available_keys = list(info.keys())
+
         raise RuntimeError(
-            f"Yahoo Finance returned incomplete data for {ticker}."
+            f"Yahoo Finance returned incomplete data for {ticker}. "
+            f"Received {len(available_keys)} fields. "
+            f"Available fields: {available_keys[:20]}"
         )
 
     return {
