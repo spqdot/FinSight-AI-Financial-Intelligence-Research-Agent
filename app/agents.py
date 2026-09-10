@@ -1,73 +1,76 @@
+import os
+import json
+
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-from app.config import OPENAI_API_KEY
-from app.tools import get_stock_summary
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
-llm = ChatOpenAI(
-    api_key=OPENAI_API_KEY,
-    model="gpt-4o-mini",
-    temperature=0
-)
-
-
-def analyze_company(ticker: str) -> str:
+def analyze_company(
+    stock_data: dict,
+    financial_health: dict,
+    historical_data: dict,
+    risk_data: dict
+) -> str:
     """
-    Retrieve financial information and generate
-    a concise financial analysis.
+    Generate an AI-powered financial research report
+    using verified structured financial analysis.
     """
 
-    financial_data = get_stock_summary(ticker)
+    llm = ChatOpenAI(
+        api_key=OPENAI_API_KEY,
+        model="gpt-4o-mini",
+        temperature=0
+    )
 
     prompt = f"""
-You are FinSight AI, a financial research assistant.
+You are a professional financial research analyst.
 
-Analyze the following company information.
+Analyze the company using ONLY the verified structured data
+provided below.
 
-Company:
-{financial_data["company_name"]}
+Do not invent financial metrics.
+Do not make unsupported claims.
+Do not provide buy, sell, or investment recommendations.
 
-Ticker:
-{financial_data["ticker"]}
+Clearly distinguish between:
+- financial metrics
+- analytical interpretation
+- risk observations
 
-Sector:
-{financial_data["sector"]}
+COMPANY FINANCIAL DATA:
+{json.dumps(stock_data, indent=2, default=str)}
 
-Industry:
-{financial_data["industry"]}
+FINANCIAL HEALTH ANALYSIS:
+{json.dumps(financial_health, indent=2, default=str)}
 
-Current Price:
-{financial_data["current_price"]}
+HISTORICAL ANALYSIS:
+{json.dumps(historical_data, indent=2, default=str)}
 
-Market Capitalization:
-{financial_data["market_cap"]}
+RISK ANALYSIS:
+{json.dumps(risk_data, indent=2, default=str)}
 
-Revenue:
-{financial_data["revenue"]}
+Create a concise professional research report with these sections:
 
-Net Income:
-{financial_data["net_income"]}
+1. Executive Summary
+2. Profitability
+3. Growth
+4. Capital Efficiency
+5. Liquidity and Leverage
+6. Valuation
+7. Historical Performance
+8. Risk Assessment
+9. Key Strengths
+10. Key Risk Considerations
+11. Overall Assessment
 
-Profit Margin:
-{financial_data["profit_margin"]}
-
-Return on Equity:
-{financial_data["return_on_equity"]}
-
-Debt to Equity:
-{financial_data["debt_to_equity"]}
-
-Provide:
-
-1. Company overview
-2. Revenue and profitability assessment
-3. Capital efficiency assessment
-4. Leverage assessment
-5. Key financial observations
-
-Do not invent financial information.
-Only use the data provided above.
-Clearly state when information is unavailable.
+Use the actual numerical values provided.
+Avoid exaggerating what the metrics imply.
+Do not introduce information that is not present in the supplied data.
 """
 
     response = llm.invoke(prompt)
