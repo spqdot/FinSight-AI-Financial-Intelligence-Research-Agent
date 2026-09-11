@@ -104,7 +104,7 @@ def get_historical_financials(ticker: str, years: int = 5):
             if earnings_cagr is not None
             else None
         ),
-        "5y_stock_return": (
+        "stock_return_5y": (
             round(stock_return, 4)
             if stock_return is not None
             else None

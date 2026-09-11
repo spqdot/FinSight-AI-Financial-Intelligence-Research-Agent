@@ -38,7 +38,7 @@ interface ResearchData {
   historical_analysis: {
     revenue_cagr: number | null;
     net_income_cagr: number | null;
-    five_year_stock_return: number | null;
+    stock_return_5y: number | null;
     annualized_volatility: number | null;
   };
   risk_analysis: {
@@ -399,7 +399,7 @@ export default function Home() {
                   label="5-Year Stock Return"
                   value={formatPercent(
                     research.historical_analysis
-                      .five_year_stock_return
+                      .stock_return_5y
                   )}
                   description="Historical price performance"
                 />

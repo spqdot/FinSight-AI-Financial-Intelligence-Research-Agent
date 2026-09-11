@@ -108,7 +108,7 @@ class HistoricalAnalysis(BaseModel):
     revenue_cagr: Optional[float] = None
     net_income_cagr: Optional[float] = None
     stock_return_5y: Optional[float] = None
-    volatility: Optional[float] = None
+    annualized_volatility: Optional[float] = None
 
 
 class RiskAnalysis(BaseModel):
