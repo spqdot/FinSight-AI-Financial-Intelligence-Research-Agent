@@ -104,11 +104,22 @@ class FinancialHealth(BaseModel):
     risk_flags: List[str]
 
 
+class MarketReturns(BaseModel):
+    mtd_return: Optional[float] = None
+    ytd_return: Optional[float] = None
+    three_month_return: Optional[float] = None
+    six_month_return: Optional[float] = None
+    one_year_return: Optional[float] = None
+    three_year_return: Optional[float] = None
+    five_year_return: Optional[float] = None
+
+
 class HistoricalAnalysis(BaseModel):
     revenue_cagr: Optional[float] = None
     net_income_cagr: Optional[float] = None
     stock_return_5y: Optional[float] = None
     annualized_volatility: Optional[float] = None
+    market_returns: Optional[MarketReturns] = None
 
 
 class RiskAnalysis(BaseModel):

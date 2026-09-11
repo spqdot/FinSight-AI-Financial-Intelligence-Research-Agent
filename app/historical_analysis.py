@@ -5,9 +5,10 @@ import pandas as pd
 def get_historical_financials(ticker: str, years: int = 5):
     """
     Retrieve historical financial data and calculate
-    key growth and performance metrics.
+    key growth and market performance metrics.
     """
 
+    ticker = ticker.upper().strip()
     stock = yf.Ticker(ticker)
 
     # -----------------------------
@@ -18,7 +19,6 @@ def get_historical_financials(ticker: str, years: int = 5):
     if income_statement.empty:
         raise ValueError(f"No financial data found for {ticker}")
 
-    # Keep the most recent years
     income_statement = income_statement.iloc[:, :years]
 
     # Revenue
@@ -59,19 +59,96 @@ def get_historical_financials(ticker: str, years: int = 5):
     history = stock.history(period="5y")
 
     if history.empty:
-        stock_return = None
-        volatility = None
+        stock_return_5y = None
+        annualized_volatility = None
+        market_returns = {}
     else:
-        start_price = float(history["Close"].iloc[0])
-        end_price = float(history["Close"].iloc[-1])
 
-        stock_return = (end_price / start_price) - 1
+        # Make dates timezone-naive for easier comparison
+        history.index = history.index.tz_localize(None)
 
-        daily_returns = history["Close"].pct_change().dropna()
+        close_prices = history["Close"].dropna()
 
-        volatility = float(
+        latest_price = float(close_prices.iloc[-1])
+        latest_date = close_prices.index[-1]
+
+        # -----------------------------
+        # Period return helper
+        # -----------------------------
+        def calculate_period_return(start_date):
+            prices = close_prices[close_prices.index >= start_date]
+
+            if prices.empty:
+                return None
+
+            start_price = float(prices.iloc[0])
+
+            return (latest_price / start_price) - 1
+
+        # -----------------------------
+        # Current dates
+        # -----------------------------
+        latest_day = latest_date.date()
+
+        month_start = pd.Timestamp(
+            year=latest_date.year,
+            month=latest_date.month,
+            day=1
+        )
+
+        year_start = pd.Timestamp(
+            year=latest_date.year,
+            month=1,
+            day=1
+        )
+
+        # -----------------------------
+        # Market performance
+        # -----------------------------
+        mtd_return = calculate_period_return(month_start)
+        ytd_return = calculate_period_return(year_start)
+
+        three_month_return = calculate_period_return(
+            latest_date - pd.DateOffset(months=3)
+        )
+
+        six_month_return = calculate_period_return(
+            latest_date - pd.DateOffset(months=6)
+        )
+
+        one_year_return = calculate_period_return(
+            latest_date - pd.DateOffset(years=1)
+        )
+
+        three_year_return = calculate_period_return(
+            latest_date - pd.DateOffset(years=3)
+        )
+
+        five_year_return = calculate_period_return(
+            latest_date - pd.DateOffset(years=5)
+        )
+
+        market_returns = {
+            "mtd_return": mtd_return,
+            "ytd_return": ytd_return,
+            "three_month_return": three_month_return,
+            "six_month_return": six_month_return,
+            "one_year_return": one_year_return,
+            "three_year_return": three_year_return,
+            "five_year_return": five_year_return,
+        }
+
+        # -----------------------------
+        # Annualized volatility
+        # -----------------------------
+        daily_returns = close_prices.pct_change().dropna()
+
+        annualized_volatility = float(
             daily_returns.std() * (252 ** 0.5)
         )
+
+        # Keep 5Y return consistent with existing API
+        stock_return_5y = five_year_return
 
     # -----------------------------
     # Format financial history
@@ -85,33 +162,50 @@ def get_historical_financials(ticker: str, years: int = 5):
                 "revenue": float(revenue.loc[date]),
                 "net_income": float(net_income.loc[date]),
                 "profit_margin": round(
-                    float(profit_margin.loc[date]), 4
+                    float(profit_margin.loc[date]),
+                    4
                 )
             }
         )
 
+    # -----------------------------
+    # Return result
+    # -----------------------------
     return {
-        "ticker": ticker.upper(),
+        "ticker": ticker,
         "years_analyzed": len(financial_history),
         "financial_history": financial_history,
+
         "revenue_cagr": (
             round(revenue_cagr, 4)
             if revenue_cagr is not None
             else None
         ),
+
         "net_income_cagr": (
             round(earnings_cagr, 4)
             if earnings_cagr is not None
             else None
         ),
+
         "stock_return_5y": (
-            round(stock_return, 4)
-            if stock_return is not None
+            round(stock_return_5y, 4)
+            if stock_return_5y is not None
             else None
         ),
+
         "annualized_volatility": (
-            round(volatility, 4)
-            if volatility is not None
+            round(annualized_volatility, 4)
+            if annualized_volatility is not None
             else None
-        )
+        ),
+
+        "market_returns": {
+            key: (
+                round(value, 4)
+                if value is not None
+                else None
+            )
+            for key, value in market_returns.items()
+        }
     }
