@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.tools import get_stock_summary
 from app.financial_analysis import analyze_financial_health
@@ -24,7 +25,16 @@ app = FastAPI(
     ),
     version="1.0.0",
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://fin-sight-ai-financial-intelligence.vercel.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ============================================================
 # Request Models
