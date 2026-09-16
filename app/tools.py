@@ -38,6 +38,17 @@ def get_stock_summary(ticker: str) -> dict:
             f"Available fields: {available_keys[:20]}"
         )
 
+    # EPS
+    trailing_eps = info.get("trailingEps")
+    forward_eps = info.get("forwardEps")
+
+    # Calculate EPS growth when both values are available.
+    eps_growth = None
+
+    if trailing_eps is not None and forward_eps is not None:
+        if trailing_eps != 0:
+            eps_growth = (forward_eps - trailing_eps) / abs(trailing_eps)
+
     return {
         # Company
         "company_name": info.get("longName"),
@@ -56,6 +67,11 @@ def get_stock_summary(ticker: str) -> dict:
         "operating_margin": info.get("operatingMargins"),
         "return_on_equity": info.get("returnOnEquity"),
         "return_on_assets": info.get("returnOnAssets"),
+
+        # Earnings
+        "trailing_eps": trailing_eps,
+        "forward_eps": forward_eps,
+        "eps_growth": eps_growth,
 
         # Growth
         "revenue_growth": info.get("revenueGrowth"),
