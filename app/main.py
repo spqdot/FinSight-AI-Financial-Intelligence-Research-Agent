@@ -30,6 +30,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://fin-sight-ai-financial-intelligence.vercel.app",
+        "https://fin-sight-ai-financial-intelligence-research-agent-7oora62l.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -126,7 +127,7 @@ class FinancialHealth(BaseModel):
 
 class MarketReturns(BaseModel):
     mtd_return: Optional[float] = None
-    ytd_return: Optional[float] = None
+    ytd_return: Optional[float] = Noneapp.add_middleware(
     three_month_return: Optional[float] = None
     six_month_return: Optional[float] = None
     one_year_return: Optional[float] = None
