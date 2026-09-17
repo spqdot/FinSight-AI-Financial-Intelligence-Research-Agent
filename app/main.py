@@ -127,7 +127,7 @@ class FinancialHealth(BaseModel):
 
 class MarketReturns(BaseModel):
     mtd_return: Optional[float] = None
-    ytd_return: Optional[float] = Noneapp.add_middleware(
+    ytd_return: Optional[float] = None
     three_month_return: Optional[float] = None
     six_month_return: Optional[float] = None
     one_year_return: Optional[float] = None
