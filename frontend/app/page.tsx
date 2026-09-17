@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import MetricCard from "@/components/MetricCard";
 import HealthBadge from "@/components/HealthBadge";
 import {
@@ -178,9 +178,23 @@ export default function Home() {
   const [showAllCompanies, setShowAllCompanies] = useState(false);
 
   const [chatQuestion, setChatQuestion] = useState("");
-  const [chatAnswer, setChatAnswer] = useState("");
+  const [chatMessages, setChatMessages] = useState<
+    {
+      role: "user" | "assistant";
+      content: string;
+    }[]
+  >([]);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [chatMessages]);
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState("");
+
+  const [showResearchReport, setShowResearchReport] = useState(false);
   const popularCompanies = [
   { ticker: "MSFT", name: "Microsoft" },
   { ticker: "AAPL", name: "Apple" },
@@ -264,15 +278,29 @@ export default function Home() {
 
     setChatLoading(true);
     setChatError("");
-    setChatAnswer("");
+
 
     try {
+     const question = chatQuestion.trim();
+
       const result = await chatCompany(
-        chatQuestion,
+        question,
         ticker.trim().toUpperCase()
       );
 
-      setChatAnswer(result.answer);
+      setChatMessages((previous) => [
+        ...previous,
+        {
+          role: "user",
+          content: question,
+        },
+        {
+          role: "assistant",
+          content: result.answer,
+        },
+      ]);
+
+      setChatQuestion("");
     } catch (err) {
       setChatError(
         err instanceof Error
@@ -578,25 +606,35 @@ export default function Home() {
             </div>
           )}
 
-          {chatAnswer && (
-            <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-zinc-300">
-                  FinSight AI Response
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setChatAnswer("")}
-                  className="text-xs text-zinc-600 transition hover:text-zinc-300"
+          {chatMessages.length > 0 && (
+            <div className="mt-6 max-h-[500px] space-y-4 overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+              {chatMessages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${
+                    message.role === "user"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
                 >
-                  Clear
-                </button>
-              </div>
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                      message.role === "user"
+                        ? "bg-blue-600 text-white"
+                        : "border border-zinc-800 bg-zinc-900 text-zinc-200"
+                    }`}
+                  >
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide opacity-60">
+                      {message.role === "user" ? "You" : "FinSight AI"}
+                    </p>
 
-              <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-300">
-                {chatAnswer}
-              </div>
+                    <p className="whitespace-pre-wrap leading-7">
+                      {message.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
             </div>
           )}
 
@@ -977,7 +1015,7 @@ export default function Home() {
 
                       <Tooltip
                         labelFormatter={(value) =>
-                          new Date(value).toLocaleDateString(
+                          new Date(String(value)).toLocaleDateString(
                             "en-US",
                             {
                               day: "2-digit",
@@ -1210,7 +1248,6 @@ export default function Home() {
               <div className="flex items-center justify-between">
 
                 <div>
-
                   <p className="text-sm uppercase tracking-wider text-zinc-500">
                     AI Analysis
                   </p>
@@ -1219,6 +1256,9 @@ export default function Home() {
                     Research Report
                   </h3>
 
+                  <p className="mt-2 text-sm text-zinc-500">
+                    Overall AI-generated analysis of the selected company.
+                  </p>
                 </div>
 
                 <div className="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-500">
@@ -1227,8 +1267,26 @@ export default function Home() {
 
               </div>
 
-              <div className="mt-6 whitespace-pre-wrap leading-8 text-zinc-300">
-                {research.ai_report}
+              <div className="mt-6 flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+
+                <div>
+                  <p className="text-sm font-medium text-zinc-300">
+                    Overall Company Analysis
+                  </p>
+
+                  <p className="mt-1 text-xs text-zinc-500">
+                    View the complete AI-generated research report.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowResearchReport(true)}
+                  className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-zinc-200"
+                >
+                  View Full Report
+                </button>
+
               </div>
 
             </div>
@@ -1237,6 +1295,55 @@ export default function Home() {
         )}
 
       </div>
+
+      {/* -------------------------------------------------
+          Overall Research Report Popup
+      ------------------------------------------------- */}
+
+      {showResearchReport && research?.ai_report && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setShowResearchReport(false)}
+        >
+          <div
+            className="relative max-h-[85vh] w-full max-w-4xl overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+
+            <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
+
+              <div>
+                <p className="text-xs uppercase tracking-wider text-zinc-500">
+                  FinSight AI
+                </p>
+
+                <h3 className="mt-1 text-xl font-semibold text-white">
+                  Overall Research Report
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowResearchReport(false)}
+                className="rounded-lg px-3 py-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+                aria-label="Close research report"
+              >
+                ✕
+              </button>
+
+            </div>
+
+            <div className="max-h-[calc(85vh-80px)] overflow-y-auto px-6 py-6">
+
+              <div className="whitespace-pre-wrap leading-8 text-zinc-300">
+                {research.ai_report}
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* -------------------------------------------------
           Footer
@@ -1249,7 +1356,6 @@ export default function Home() {
         </div>
 
       </footer>
-
     </main>
   );
 }
