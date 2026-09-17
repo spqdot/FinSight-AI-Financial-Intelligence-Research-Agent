@@ -32,6 +32,9 @@ app.add_middleware(
         "https://fin-sight-ai-financial-intelligence.vercel.app",
         "https://fin-sight-ai-financial-intelligence-research-agent-7oora62l.vercel.app",
     ],
+    allow_origin_regex=(
+        r"https://fin-sight-ai-financial-intelligence(?:-[a-z0-9-]+)?\.vercel\.app"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
