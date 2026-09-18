@@ -4,6 +4,12 @@ FinSight AI is an AI-powered financial research application that combines financ
 
 The project is designed to turn financial data into structured, understandable insights while keeping AI analysis grounded in verified data.
 
+## Live Application
+
+- Frontend: https://fin-sight-ai-financial-intelligence.vercel.app
+- Backend API: https://finsight-ai-financial-intelligence.onrender.com
+- API documentation: https://finsight-ai-financial-intelligence.onrender.com/docs
+
 ## Features
 
 - **Company Financial Analysis**
